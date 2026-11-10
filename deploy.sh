@@ -15,8 +15,9 @@
 #    SRC_DIR=/opt/qrcode-src  Cópia do repositório (fonte das atualizações)
 #    REPO_URL=...             Repositório Git (padrão: github.com/efbecker/qrcode)
 #    BRANCH=main              Branch a implantar
-#    ENABLE_ALIAS=1           Publica também em http://<ip-do-servidor>/qrcode/ (0 desativa)
-#    DISABLE_DEFAULT_SITE=0   1 = desativa o site padrão 000-default do Apache
+#    DISABLE_DEFAULT_SITE=1   Desativa o 000-default para a aplicação responder na raiz
+#                             (http://127.0.0.1/). Use 0 para manter o site padrão.
+#    ENABLE_ALIAS=0           1 = publica também em http://<ip-do-servidor>/qrcode/
 # =============================================================================
 
 # Todo o script fica dentro de main(): se o download via curl for interrompido
@@ -32,8 +33,8 @@ main() {
   readonly APP_DIR="${APP_DIR:-/var/www/qrcode}"
   readonly SRC_DIR="${SRC_DIR:-/opt/qrcode-src}"
   readonly DOMAIN="${DOMAIN:-qrcode.local}"
-  readonly ENABLE_ALIAS="${ENABLE_ALIAS:-1}"
-  readonly DISABLE_DEFAULT_SITE="${DISABLE_DEFAULT_SITE:-0}"
+  readonly ENABLE_ALIAS="${ENABLE_ALIAS:-0}"
+  readonly DISABLE_DEFAULT_SITE="${DISABLE_DEFAULT_SITE:-1}"
   readonly TARBALL_URL="${TARBALL_URL:-${REPO_URL%.git}/archive/refs/heads/${BRANCH}.tar.gz}"
 
   readonly SITE_CONF="/etc/apache2/sites-available/${APP_NAME}.conf"
@@ -208,8 +209,13 @@ EOF
     a2disconf -q "${APP_NAME}-alias" >/dev/null 2>&1 || true
   fi
   if [[ "${DISABLE_DEFAULT_SITE}" == "1" ]]; then
+    # Sem o 000-default, o VirtualHost do QR Code vira o padrão da porta 80
+    # e responde na raiz para qualquer endereço (IP, localhost, domínio).
     a2dissite -q 000-default >/dev/null 2>&1 || true
-    ok "site padrão 000-default desativado"
+    ok "site padrão 000-default desativado; aplicação servida na raiz /"
+    local other
+    other="$(find /etc/apache2/sites-enabled -maxdepth 1 -name '*.conf' ! -name "${APP_NAME}.conf" -printf '%f\n' | sort | awk -v me="${APP_NAME}.conf" '$0 < me' | head -n1)"
+    [[ -z "${other}" ]] || warn "o site '${other}' carrega antes e pode continuar sendo o padrão por IP; desative-o com a2dissite se necessário"
   fi
 
   # --------------------------------------------------------------- 7. teste e restart
@@ -229,9 +235,11 @@ EOF
   fi
   ok "apache2 reiniciado"
 
-  local check_url="http://127.0.0.1/${APP_NAME}/"
-  [[ "${ENABLE_ALIAS}" == "1" ]] || check_url="http://127.0.0.1/"
-  if curl -fsS -o /dev/null -H "Host: ${DOMAIN}" "${check_url}"; then
+  local check_url="http://127.0.0.1/" host_hdr=()
+  # Com o 000-default ativo, a raiz por IP é outro site: valida pelo domínio
+  [[ "${DISABLE_DEFAULT_SITE}" == "1" ]] || host_hdr=(-H "Host: ${DOMAIN}")
+  if curl -fsS -o /dev/null "${host_hdr[@]}" "${check_url}" && \
+     curl -fsS "${host_hdr[@]}" "${check_url}" | grep -q "QR Code Fácil"; then
     ok "aplicação respondendo em ${check_url}"
   else
     warn "não foi possível validar ${check_url} (verifique firewall/logs)"
@@ -251,8 +259,11 @@ ${C_GREEN}============================================================
 
   Acesso local / pela rede:
 EOF
+  if [[ "${DISABLE_DEFAULT_SITE}" == "1" ]]; then
+    echo "    http://127.0.0.1/"
+    echo "    http://${ip}/"
+  fi
   [[ "${ENABLE_ALIAS}" == "1" ]] && echo "    http://${ip}/${APP_NAME}/"
-  [[ "${DISABLE_DEFAULT_SITE}" == "1" ]] && echo "    http://${ip}/"
   cat <<EOF
     http://${DOMAIN}/   (após apontar o DNS)
 

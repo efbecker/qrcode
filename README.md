@@ -52,7 +52,7 @@ O script:
 4. clona/atualiza o repositório em `/opt/qrcode-src` (ou baixa o tarball, se o git falhar);
 5. publica os arquivos web em `/var/www/qrcode` (troca atômica), com dono `www-data`, pastas `755` e arquivos `644`;
 6. cria `/etc/apache2/sites-available/qrcode.conf` (VirtualHost com cache de assets e cabeçalhos de segurança/CSP)
-   e um alias `/qrcode` para acesso pelo IP;
+   como site padrão da porta 80 (desativa o `000-default`), servindo a aplicação na raiz: `http://127.0.0.1/`;
 7. roda `apache2ctl configtest` e reinicia o Apache;
 8. mostra as URLs de acesso e como apontar o DNS.
 
@@ -64,8 +64,8 @@ Rodar de novo atualiza para a última versão da `main`.
 | `APP_DIR` | `/var/www/qrcode` | Pasta publicada |
 | `SRC_DIR` | `/opt/qrcode-src` | Cópia do repositório |
 | `BRANCH` | `main` | Branch implantada |
-| `ENABLE_ALIAS` | `1` | Publica também em `http://<ip>/qrcode/` |
-| `DISABLE_DEFAULT_SITE` | `0` | `1` desativa o `000-default` do Apache |
+| `DISABLE_DEFAULT_SITE` | `1` | Desativa o `000-default` para a aplicação responder na raiz (`http://127.0.0.1/`); `0` mantém o site padrão |
+| `ENABLE_ALIAS` | `0` | `1` publica também em `http://<ip>/qrcode/` |
 
 HTTPS depois do DNS apontado:
 
