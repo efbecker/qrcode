@@ -1,13 +1,13 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>QR Code Fácil · Gerador de QR Code personalizado</title>
   <meta name="description" content="Gere QR Codes personalizados para links, Wi-Fi, WhatsApp, vCard, Pix e mais. 100% no navegador, gratuito e open-source.">
-  <meta name="theme-color" content="#0f4c87">
+  <meta name="theme-color" content="#0f1629">
   <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
-  <link rel="stylesheet" href="assets/css/style.css?v=1.0.0">
+  <link rel="stylesheet" href="assets/css/style.css?v=1.1.0">
 </head>
 <body>
   <a class="skip-link" href="#conteudo-principal">Pular para o conteúdo</a>
@@ -17,8 +17,13 @@
     <div class="container header-inner">
       <a class="brand" href="./" aria-label="QR Code Fácil, página inicial">
         <svg class="brand-logo" viewBox="0 0 32 32" aria-hidden="true">
-          <path d="M3 11V3h8M21 3h8v8M3 21v8h8" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="square"/>
-          <path d="M22 22l6 6" stroke="var(--accent)" stroke-width="3.2" stroke-linecap="round"/>
+          <rect x="2.5" y="2.5" width="11" height="11" rx="3.5" fill="none" stroke="currentColor" stroke-width="2.6"/>
+          <rect x="18.5" y="2.5" width="11" height="11" rx="3.5" fill="none" stroke="currentColor" stroke-width="2.6"/>
+          <rect x="2.5" y="18.5" width="11" height="11" rx="3.5" fill="none" stroke="currentColor" stroke-width="2.6"/>
+          <rect x="6.2" y="6.2" width="3.6" height="3.6" rx="1" fill="currentColor"/>
+          <rect x="22.2" y="6.2" width="3.6" height="3.6" rx="1" fill="currentColor"/>
+          <rect x="6.2" y="22.2" width="3.6" height="3.6" rx="1" fill="currentColor"/>
+          <path d="M19 24.5l3.5 3.5 7-8" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         <span class="brand-name">QR Code Fácil</span>
         <span class="brand-badge">Open Source</span>
@@ -231,6 +236,6 @@
 
   <!-- Biblioteca empacotada localmente (funciona offline) -->
   <script src="assets/vendor/qr-code-styling/qr-code-styling.js?v=1.9.2"></script>
-  <script type="module" src="assets/js/app.js?v=1.0.0"></script>
+  <script type="module" src="assets/js/app.js?v=1.1.0"></script>
 </body>
 </html>
