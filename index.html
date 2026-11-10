@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QR Code Fácil · Gerador de QR Code personalizado</title>
+  <meta name="description" content="Gere QR Codes personalizados para links, Wi-Fi, WhatsApp, vCard, Pix e mais. 100% no navegador, gratuito e open-source.">
+  <meta name="theme-color" content="#0f4c87">
+  <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+  <link rel="stylesheet" href="assets/css/style.css?v=1.0.0">
+</head>
+<body>
+  <a class="skip-link" href="#conteudo-principal">Pular para o conteúdo</a>
+
+  <!-- ============ Cabeçalho ============ -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="./" aria-label="QR Code Fácil, página inicial">
+        <svg class="brand-logo" viewBox="0 0 32 32" aria-hidden="true">
+          <path d="M3 11V3h8M21 3h8v8M3 21v8h8" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="square"/>
+          <path d="M22 22l6 6" stroke="var(--accent)" stroke-width="3.2" stroke-linecap="round"/>
+        </svg>
+        <span class="brand-name">QR Code Fácil</span>
+        <span class="brand-badge">Open Source</span>
+      </a>
+
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="menu-principal">
+        <span class="sr-only">Abrir menu</span>
+        <span class="nav-toggle-bar"></span>
+      </button>
+
+      <nav id="menu-principal" class="main-nav" aria-label="Menu principal">
+        <ul>
+          <li><a href="#gerador">Gerador</a></li>
+          <li><a href="#como-usar">Como usar</a></li>
+          <li><a href="#sobre">Sobre</a></li>
+        </ul>
+        <a class="btn btn-accent" href="https://github.com/efbecker/qrcode" target="_blank" rel="noopener">Código no GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="conteudo-principal" class="container">
+    <div id="gerador" class="layout">
+
+      <!-- ============ Coluna esquerda: formulário ============ -->
+      <div class="col-form">
+
+        <section aria-labelledby="titulo-tipo">
+          <h2 id="titulo-tipo" class="section-title">Selecione o tipo de conteúdo</h2>
+          <div id="type-grid" class="type-grid" role="radiogroup" aria-labelledby="titulo-tipo">
+            <!-- Cards gerados por app.js a partir de QR_TYPES -->
+          </div>
+        </section>
+
+        <section aria-labelledby="titulo-conteudo">
+          <h2 id="titulo-conteudo" class="section-title">Conteúdo</h2>
+          <form id="content-form" class="panel form-grid" novalidate autocomplete="off">
+            <!-- Campos gerados dinamicamente conforme o tipo selecionado -->
+          </form>
+        </section>
+
+        <section aria-labelledby="titulo-personalizacao">
+          <h2 id="titulo-personalizacao" class="section-title">Personalização</h2>
+          <form id="style-form" class="panel" novalidate>
+
+            <div class="style-row">
+              <div class="field">
+                <label for="bgColor">Fundo</label>
+                <div class="color-field">
+                  <input type="color" id="bgColor" value="#ffffff" data-hex-for="bgColorHex">
+                  <input type="text" id="bgColorHex" class="hex-input" value="#FFFFFF" maxlength="7" spellcheck="false" aria-label="Cor de fundo em hexadecimal">
+                </div>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="bgTransparent">
+                <span class="switch-track" aria-hidden="true"></span>
+                <span class="switch-label">Fundo transparente</span>
+              </label>
+            </div>
+
+            <div class="style-grid">
+              <div class="field">
+                <label for="dotsColor">Primeiro plano</label>
+                <div class="color-field">
+                  <input type="color" id="dotsColor" value="#000000" data-hex-for="dotsColorHex">
+                  <input type="text" id="dotsColorHex" class="hex-input" value="#000000" maxlength="7" spellcheck="false" aria-label="Cor de primeiro plano em hexadecimal">
+                </div>
+              </div>
+              <div class="field">
+                <label for="eyeFrameColor">Moldura do olho</label>
+                <div class="color-field">
+                  <input type="color" id="eyeFrameColor" value="#000000" data-hex-for="eyeFrameColorHex">
+                  <input type="text" id="eyeFrameColorHex" class="hex-input" value="#000000" maxlength="7" spellcheck="false" aria-label="Cor da moldura do olho em hexadecimal">
+                </div>
+              </div>
+              <div class="field">
+                <label for="eyeCenterColor">Centro do olho</label>
+                <div class="color-field">
+                  <input type="color" id="eyeCenterColor" value="#000000" data-hex-for="eyeCenterColorHex">
+                  <input type="text" id="eyeCenterColorHex" class="hex-input" value="#000000" maxlength="7" spellcheck="false" aria-label="Cor do centro do olho em hexadecimal">
+                </div>
+              </div>
+            </div>
+
+            <fieldset class="shape-fieldset">
+              <legend>Formato do corpo do QR Code</legend>
+              <div class="shape-options" id="dotsType">
+                <!-- Opções geradas por app.js -->
+              </div>
+            </fieldset>
+
+            <div class="style-grid">
+              <div class="field">
+                <label for="eyeFrameType">Formato da moldura do olho</label>
+                <select id="eyeFrameType">
+                  <option value="square">Quadrado</option>
+                  <option value="extra-rounded">Arredondado</option>
+                  <option value="dot">Círculo</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="eyeCenterType">Formato do centro do olho</label>
+                <select id="eyeCenterType">
+                  <option value="square">Quadrado</option>
+                  <option value="dot">Círculo</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="ecLevel">Correção de erro</label>
+                <select id="ecLevel">
+                  <option value="L">Baixa (7%)</option>
+                  <option value="M">Média (15%)</option>
+                  <option value="Q" selected>Alta (25%)</option>
+                  <option value="H">Máxima (30%)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="style-grid">
+              <div class="field">
+                <label for="margin">Margem: <output id="marginOut" for="margin">10</output> px</label>
+                <input type="range" id="margin" min="0" max="40" value="10">
+              </div>
+              <div class="field">
+                <label for="exportSize">Tamanho do download</label>
+                <select id="exportSize">
+                  <option value="512">512 × 512 px</option>
+                  <option value="1024" selected>1024 × 1024 px</option>
+                  <option value="2048">2048 × 2048 px</option>
+                  <option value="4096">4096 × 4096 px</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="logoFile">Logo no centro (opcional)</label>
+                <div class="file-field">
+                  <input type="file" id="logoFile" accept="image/png,image/jpeg,image/svg+xml,image/webp">
+                  <button type="button" id="logoClear" class="btn-link" hidden>Remover logo</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="style-actions">
+              <button type="button" id="resetStyle" class="btn-link">Restaurar padrão</button>
+            </div>
+          </form>
+        </section>
+      </div>
+
+      <!-- ============ Coluna direita: preview e ações ============ -->
+      <aside class="col-preview" aria-labelledby="titulo-preview">
+        <div class="preview-sticky">
+          <h2 id="titulo-preview" class="sr-only">Pré-visualização</h2>
+          <div class="preview-card">
+            <div id="qr-preview" class="qr-preview" aria-live="polite"></div>
+            <div id="qr-placeholder" class="qr-placeholder" aria-hidden="true">
+              <svg viewBox="0 0 100 100">
+                <path d="M4 4h36v36H4zM60 4h36v36H60zM4 60h36v36H4z" fill="none" stroke="currentColor" stroke-width="6"/>
+                <path d="M16 16h12v12H16zM72 16h12v12H72zM16 72h12v12H16zM60 60h12v12H60zM84 60h12v12H84zM72 72h12v12H72zM60 84h12v12H60zM84 84h12v12H84z" fill="currentColor"/>
+              </svg>
+            </div>
+          </div>
+          <p id="qr-status" class="qr-status" role="status">Preencha o conteúdo para gerar o QR Code.</p>
+
+          <button type="button" id="btnGenerate" class="btn btn-primary btn-block btn-lg">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="2.4"/></svg>
+            Gerar QRCode
+          </button>
+
+          <div class="download-row">
+            <button type="button" id="btnPng" class="btn btn-outline" disabled>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 20h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Baixar PNG
+            </button>
+            <button type="button" id="btnSvg" class="btn btn-outline" disabled>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 20h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Baixar SVG
+            </button>
+          </div>
+
+          <details class="payload-details">
+            <summary>Ver conteúdo codificado</summary>
+            <pre id="payload-view" class="payload-view">—</pre>
+          </details>
+        </div>
+      </aside>
+    </div>
+
+    <!-- ============ Seções institucionais ============ -->
+    <section id="como-usar" class="info-section" aria-labelledby="titulo-como-usar">
+      <h2 id="titulo-como-usar" class="section-title">Como usar</h2>
+      <ol class="steps">
+        <li><strong>Escolha o tipo</strong> de conteúdo: link, texto, Wi-Fi, WhatsApp, Pix e outros.</li>
+        <li><strong>Preencha os campos</strong>. O QR Code é atualizado em tempo real.</li>
+        <li><strong>Personalize</strong> cores, formato dos pontos, olhos e logo.</li>
+        <li><strong>Baixe</strong> em PNG (alta resolução) ou SVG (vetorial, ideal para impressão).</li>
+      </ol>
+    </section>
+
+    <section id="sobre" class="info-section" aria-labelledby="titulo-sobre">
+      <h2 id="titulo-sobre" class="section-title">Sobre</h2>
+      <p>O QR Code Fácil é um projeto open-source. Todo o processamento acontece no seu navegador: nenhum dado digitado é enviado ao servidor. Os QR Codes gerados são estáticos, não expiram e não possuem rastreamento.</p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>QR Code Fácil · Licença MIT · Geração com <a href="https://github.com/kozakdenys/qr-code-styling" target="_blank" rel="noopener">qr-code-styling</a></p>
+    </div>
+  </footer>
+
+  <!-- Biblioteca empacotada localmente (funciona offline) -->
+  <script src="assets/vendor/qr-code-styling/qr-code-styling.js?v=1.9.2"></script>
+  <script type="module" src="assets/js/app.js?v=1.0.0"></script>
+</body>
+</html>
