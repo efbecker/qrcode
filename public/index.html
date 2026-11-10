@@ -4,10 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>QR Code Fácil · Gerador de QR Code personalizado</title>
-  <meta name="description" content="Gere QR Codes personalizados para links, Wi-Fi, WhatsApp, vCard, Pix e mais. 100% no navegador, gratuito e open-source.">
+  <meta name="description" content="Gere QR Codes personalizados para links, Wi-Fi, WhatsApp, vCard, Pix e mais. Grátis, sem cadastro. Crie uma conta para acompanhar quantas pessoas abriram seus links.">
   <meta name="theme-color" content="#0f1629">
   <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
-  <link rel="stylesheet" href="assets/css/style.css?v=1.1.0">
+  <link rel="stylesheet" href="assets/css/style.css?v=2.0.0">
+  <link rel="stylesheet" href="assets/css/app.css?v=2.0.0">
 </head>
 <body>
   <a class="skip-link" href="#conteudo-principal">Pular para o conteúdo</a>
@@ -38,9 +39,18 @@
         <ul>
           <li><a href="#gerador">Gerador</a></li>
           <li><a href="#como-usar">Como usar</a></li>
-          <li><a href="#sobre">Sobre</a></li>
+          <li><a href="#vantagens">Vantagens da conta</a></li>
+          <li data-auth="user" hidden><a href="painel">Meu painel</a></li>
+          <li data-auth="admin" hidden><a href="admin">Administração</a></li>
         </ul>
-        <a class="btn btn-accent" href="https://github.com/efbecker/qrcode" target="_blank" rel="noopener">Código no GitHub</a>
+        <div class="account-nav">
+          <a class="btn btn-ghost" href="entrar" data-auth="guest">Entrar</a>
+          <a class="btn btn-accent" href="cadastrar" data-auth="guest">Criar conta grátis</a>
+          <a class="account-chip" href="painel/conta" data-auth="user" hidden title="Minha conta">
+            <span class="avatar" aria-hidden="true" id="account-initial"></span>
+            <span class="account-name" id="account-name"></span>
+          </a>
+        </div>
       </nav>
     </div>
   </header>
@@ -207,6 +217,38 @@
             <summary>Ver conteúdo codificado</summary>
             <pre id="payload-view" class="payload-view">—</pre>
           </details>
+
+          <!-- Visitante: convite para criar conta (trocado por app.js quando logado) -->
+          <div class="account-card" id="promo-card">
+            <h3><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h18M6 16V10M11 16V5M16 16v-7M21 16v-3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>Quantas pessoas escanearam?</h3>
+            <p>Com uma conta grátis, seus links viram <strong>links rastreados</strong>: você vê cada abertura, quando e de qual aparelho.</p>
+            <ul>
+              <li>Contagem de aberturas em tempo real</li>
+              <li>Troque o destino sem reimprimir</li>
+              <li>Histórico de todos os seus QR Codes</li>
+            </ul>
+            <div class="btn-row">
+              <a class="btn btn-accent btn-sm" href="cadastrar">Criar conta</a>
+              <a class="btn btn-ghost btn-sm" href="entrar">Entrar</a>
+            </div>
+          </div>
+
+          <!-- Logado: salvar no painel e rastrear -->
+          <form class="account-card" id="save-card" hidden novalidate>
+            <h3><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h11l3 3v15H5zM8 3v6h8V3M8 21v-7h8v7" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Salvar no meu painel</h3>
+            <div class="field">
+              <label for="saveTitle">Nome do QR Code</label>
+              <input type="text" id="saveTitle" maxlength="120" placeholder="Ex.: Cardápio da loja">
+            </div>
+            <label class="switch" id="trackWrap">
+              <input type="checkbox" id="saveTrack" checked>
+              <span class="switch-track" aria-hidden="true"></span>
+              <span class="switch-label">Rastrear aberturas (link dinâmico)</span>
+            </label>
+            <p class="small muted" id="trackHint">O QR Code apontará para um link curto que conta cada abertura e redireciona para o seu destino.</p>
+            <button type="submit" class="btn btn-accent btn-block" id="btnSave">Salvar e rastrear</button>
+            <p class="saved-info" id="saveInfo" role="status" hidden></p>
+          </form>
         </div>
       </aside>
     </div>
@@ -222,20 +264,86 @@
       </ol>
     </section>
 
+    <!-- ============ Vantagens da conta ============ -->
+    <section id="vantagens" class="benefits-section" aria-labelledby="titulo-vantagens">
+      <div class="benefits-head">
+        <h2 id="titulo-vantagens" class="section-title">Saiba quem abriu cada QR Code</h2>
+        <p>Precisa só de um QR Code rápido? Use o gerador acima, sem cadastro. Mas se o QR Code vai para um cartaz, cardápio, embalagem ou campanha, crie sua conta grátis e acompanhe os resultados.</p>
+      </div>
+      <div class="benefit-grid">
+        <article class="benefit-card">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h18M6 16V10M11 16V5M16 16v-7M21 16v-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <h3>Contagem de aberturas</h3>
+          <p>Veja quantas vezes cada QR Code foi escaneado, por dia e por horário, e quantos visitantes diferentes foram.</p>
+        </article>
+        <article class="benefit-card">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M11 18.5h2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <h3>Quem clicou e como</h3>
+          <p>Celular ou computador, Android ou iPhone, navegador, idioma e horário de cada abertura, com exportação para planilha.</p>
+        </article>
+        <article class="benefit-card">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.7-5.6L20 9M20 4v5h-5M20 12a8 8 0 0 1-13.7 5.6L4 15M4 20v-5h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <h3>Links dinâmicos</h3>
+          <p>Mudou o site ou a promoção? Troque o destino no painel e o QR Code já impresso passa a abrir o novo link.</p>
+        </article>
+        <article class="benefit-card">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="4" height="14" rx="1" fill="currentColor"/><rect x="15" y="5" width="4" height="14" rx="1" fill="currentColor"/></svg>
+          <h3>Pausar quando quiser</h3>
+          <p>Campanha encerrada? Pause o link com um clique e reative depois, sem precisar de outro QR Code.</p>
+        </article>
+        <article class="benefit-card">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 12h16M4 19h10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <h3>Tudo organizado</h3>
+          <p>Histórico de todos os seus QR Codes com nome, busca e download de novo em PNG ou SVG a qualquer momento.</p>
+        </article>
+        <article class="benefit-card">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l8 3.5v6c0 5-3.5 8.5-8 9.5-4.5-1-8-4.5-8-9.5V6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M8.5 12l2.5 2.5 4.5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <h3>Seguro e respeitando a LGPD</h3>
+          <p>Senhas protegidas com Argon2id, estatísticas sem guardar IP completo nem dados pessoais de quem escaneia.</p>
+        </article>
+      </div>
+
+      <div class="compare">
+        <div class="compare-col">
+          <h3>Sem conta</h3>
+          <ul>
+            <li>Todos os tipos de QR Code e personalização</li>
+            <li>Download em PNG e SVG</li>
+            <li>Nada sai do seu navegador</li>
+            <li class="no">Sem contagem de aberturas</li>
+            <li class="no">Não dá para alterar depois de impresso</li>
+          </ul>
+          <a class="btn btn-ghost" href="#gerador">Gerar agora</a>
+        </div>
+        <div class="compare-col highlight">
+          <h3>Com conta grátis</h3>
+          <ul>
+            <li>Tudo do plano sem conta</li>
+            <li>Contagem e detalhes de cada abertura</li>
+            <li>Destino editável e link pausável</li>
+            <li>Painel com histórico e gráficos</li>
+            <li>Exportação CSV das aberturas</li>
+          </ul>
+          <a class="btn btn-accent" href="cadastrar" data-auth="guest">Criar minha conta grátis</a>
+          <a class="btn btn-accent" href="painel" data-auth="user" hidden>Ir para o meu painel</a>
+        </div>
+      </div>
+    </section>
+
     <section id="sobre" class="info-section" aria-labelledby="titulo-sobre">
       <h2 id="titulo-sobre" class="section-title">Sobre</h2>
-      <p>O QR Code Fácil é um projeto open-source. Todo o processamento acontece no seu navegador: nenhum dado digitado é enviado ao servidor. Os QR Codes gerados são estáticos, não expiram e não possuem rastreamento.</p>
+      <p>O QR Code Fácil é um projeto open-source. Sem conta, todo o processamento acontece no seu navegador: nenhum dado digitado é enviado ao servidor, e os QR Codes gerados são estáticos, não expiram e não possuem rastreamento. Com conta, só os QR Codes que você decide salvar ficam guardados no seu painel, e os links rastreados registram aberturas de forma anônima.</p>
     </section>
   </main>
 
   <footer class="site-footer">
     <div class="container">
-      <p>QR Code Fácil · Licença MIT · Geração com <a href="https://github.com/kozakdenys/qr-code-styling" target="_blank" rel="noopener">qr-code-styling</a></p>
+      <p>QR Code Fácil · Licença MIT · <a href="https://github.com/efbecker/qrcode" target="_blank" rel="noopener">Código no GitHub</a> · Geração com <a href="https://github.com/kozakdenys/qr-code-styling" target="_blank" rel="noopener">qr-code-styling</a></p>
     </div>
   </footer>
 
   <!-- Biblioteca empacotada localmente (funciona offline) -->
   <script src="assets/vendor/qr-code-styling/qr-code-styling.js?v=1.9.2"></script>
-  <script type="module" src="assets/js/app.js?v=1.1.0"></script>
+  <script type="module" src="assets/js/app.js?v=2.0.0"></script>
 </body>
 </html>

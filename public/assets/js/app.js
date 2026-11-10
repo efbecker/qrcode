@@ -8,13 +8,13 @@
  */
 import { QR_TYPES } from './payloads.js';
 import { ICONS } from './icons.js';
+import { qrOptions, DEFAULT_STYLE, PREVIEW_SIZE } from './qr-options.js?v=2.0.0';
 
 const QRCodeStyling = window.QRCodeStyling;
 
 /* ------------------------------------------------------------------ helpers */
 
 const $ = (sel, root = document) => root.querySelector(sel);
-const PREVIEW_SIZE = 300;
 const HEX_RE = /^#[0-9a-f]{6}$/i;
 
 const debounce = (fn, ms = 200) => {
@@ -60,26 +60,15 @@ const shapeIcon = (type) => {
 
 /* ------------------------------------------------------------------ estado */
 
-const DEFAULT_STYLE = {
-  bgColor: '#ffffff',
-  bgTransparent: false,
-  dotsColor: '#000000',
-  eyeFrameColor: '#000000',
-  eyeCenterColor: '#000000',
-  dotsType: 'square',
-  eyeFrameType: 'square',
-  eyeCenterType: 'square',
-  ecLevel: 'Q',
-  margin: 10,
-  exportSize: 1024,
-};
-
 const state = {
   typeId: QR_TYPES[0].id,
   values: {}, // valores digitados por tipo: { url: {url: '...'}, wifi: {...} }
   style: { ...DEFAULT_STYLE },
   logo: null, // data URL
-  payload: '',
+  built: '', // conteúdo montado a partir do formulário
+  payload: '', // o que vai no QR Code (link curto, se salvo com rastreio)
+  saved: null, // { source, data, tracked, panelUrl } após salvar no painel
+  account: null, // resposta de api/me
 };
 
 const el = {
@@ -97,6 +86,14 @@ const el = {
   logoFile: $('#logoFile'),
   logoClear: $('#logoClear'),
   marginOut: $('#marginOut'),
+  promoCard: $('#promo-card'),
+  saveCard: $('#save-card'),
+  saveTitle: $('#saveTitle'),
+  saveTrack: $('#saveTrack'),
+  trackWrap: $('#trackWrap'),
+  trackHint: $('#trackHint'),
+  btnSave: $('#btnSave'),
+  saveInfo: $('#saveInfo'),
 };
 
 const currentType = () => QR_TYPES.find((t) => t.id === state.typeId);
@@ -323,22 +320,7 @@ function clearLogo() {
 
 /** Monta as opções do qr-code-styling para um tamanho em pixels. */
 function buildQrOptions(size, type = 'svg') {
-  const s = state.style;
-  const scale = size / PREVIEW_SIZE;
-  return {
-    width: size,
-    height: size,
-    type,
-    data: state.payload,
-    margin: Math.round(s.margin * scale),
-    qrOptions: { errorCorrectionLevel: s.ecLevel },
-    image: state.logo || undefined,
-    imageOptions: { hideBackgroundDots: true, imageSize: 0.35, margin: Math.round(4 * scale) },
-    dotsOptions: { color: s.dotsColor, type: s.dotsType },
-    backgroundOptions: { color: s.bgTransparent ? 'rgba(0,0,0,0)' : s.bgColor },
-    cornersSquareOptions: { color: s.eyeFrameColor, type: s.eyeFrameType },
-    cornersDotOptions: { color: s.eyeCenterColor, type: s.eyeCenterType },
-  };
+  return qrOptions({ data: state.payload, style: state.style, size, type, logo: state.logo });
 }
 
 let previewQr = null;
@@ -356,8 +338,15 @@ function setReady(ready) {
 }
 
 function update() {
-  state.payload = currentType().build(currentValues()) || '';
+  state.built = currentType().build(currentValues()) || '';
+  // Conteúdo mudou depois de salvar: volta a ser um QR Code novo (ainda não salvo)
+  if (state.saved && state.saved.source !== state.built) {
+    state.saved = null;
+    showSaveInfo('');
+  }
+  state.payload = state.saved?.tracked ? state.saved.data : state.built;
   el.payloadView.textContent = state.payload || '—';
+  updateSaveCard();
 
   if (!state.payload) {
     setReady(false);
@@ -374,7 +363,12 @@ function update() {
       previewQr.update(opts);
     }
     setReady(true);
-    setStatus(`QR Code pronto · ${state.payload.length} caracteres`, 'ok');
+    setStatus(
+      state.saved?.tracked
+        ? 'QR Code rastreado pronto · aponta para o seu link curto'
+        : `QR Code pronto · ${state.payload.length} caracteres`,
+      'ok'
+    );
     return true;
   } catch (err) {
     console.error(err);
@@ -393,7 +387,7 @@ async function download(extension) {
   try {
     const size = state.style.exportSize;
     const qr = new QRCodeStyling(buildQrOptions(size, extension === 'png' ? 'canvas' : 'svg'));
-    await qr.download({ name: `qrcode-${state.typeId}`, extension });
+    await qr.download({ name: state.saved?.tracked ? 'qrcode-rastreado' : `qrcode-${state.typeId}`, extension });
     setStatus(`Download ${extension.toUpperCase()} iniciado (${size}×${size} px).`, 'ok');
   } catch (err) {
     console.error(err);
@@ -401,6 +395,116 @@ async function download(extension) {
   } finally {
     btn.disabled = false;
   }
+}
+
+/* ------------------------------------------------------------------ conta (opcional) */
+
+const isHttpUrl = (v) => /^https?:\/\/[^\s]+$/i.test(v);
+
+function showSaveInfo(html, kind = 'ok') {
+  el.saveInfo.hidden = !html;
+  el.saveInfo.dataset.kind = kind;
+  el.saveInfo.innerHTML = html;
+}
+
+/** Ajusta o cartão "Salvar no meu painel" ao conteúdo atual. */
+function updateSaveCard() {
+  if (!state.account?.authenticated) return;
+  const canTrackUrl = isHttpUrl(state.built);
+  const canTrack = canTrackUrl && state.account.canTrack;
+  el.saveTrack.disabled = !canTrack;
+  el.trackWrap.classList.toggle('is-disabled', !canTrack);
+  const track = canTrack && el.saveTrack.checked;
+  el.btnSave.textContent = state.saved ? 'Salvo no painel ✓' : track ? 'Salvar e rastrear' : 'Salvar no painel';
+  el.btnSave.disabled = !state.built || Boolean(state.saved);
+  if (!canTrackUrl) {
+    el.trackHint.textContent = 'Rastreamento disponível para conteúdos que são links (http/https). Este QR Code será salvo como estático.';
+  } else if (!state.account.canTrack) {
+    el.trackHint.textContent = 'Confirme seu e-mail (veja o link no seu painel) para liberar os links rastreados.';
+  } else if (track) {
+    el.trackHint.textContent = 'O QR Code apontará para um link curto que conta cada abertura e redireciona para o seu destino. Você poderá trocar o destino depois.';
+  } else {
+    el.trackHint.textContent = 'Sem rastreio: o link vai direto dentro do QR Code (não dá para contar aberturas).';
+  }
+}
+
+async function saveToPanel(e) {
+  e.preventDefault();
+  if (!update() || state.saved) return;
+  const track = !el.saveTrack.disabled && el.saveTrack.checked;
+  el.btnSave.disabled = true;
+  el.btnSave.textContent = 'Salvando...';
+  try {
+    const res = await fetch('api/qrcodes', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': state.account.csrf },
+      body: JSON.stringify({
+        type: state.typeId,
+        content: state.built,
+        title: el.saveTitle.value.trim(),
+        track,
+        style: state.style,
+      }),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (res.status === 401 || res.status === 419) {
+      showSaveInfo('Sua sessão expirou. <a href="entrar">Entre novamente</a> para salvar.', 'error');
+      return;
+    }
+    if (!res.ok) throw new Error(json.error || 'Não foi possível salvar.');
+
+    state.saved = { source: state.built, data: json.data, tracked: json.tracked, panelUrl: json.panelUrl };
+    el.saveTitle.value = '';
+    update();
+    const link = document.createElement('a');
+    link.href = json.panelUrl;
+    link.textContent = 'Ver no painel';
+    const msg = json.tracked
+      ? `Salvo e rastreando! O QR Code agora aponta para <code></code>. Baixe o PNG/SVG abaixo. `
+      : 'Salvo no seu painel. ';
+    showSaveInfo(msg);
+    if (json.tracked) el.saveInfo.querySelector('code').textContent = json.data;
+    el.saveInfo.append(link);
+    if (state.logo) el.saveInfo.append(' (o logo não fica salvo no painel: baixe agora a versão com logo).');
+  } catch (err) {
+    showSaveInfo('', 'error');
+    el.saveInfo.hidden = false;
+    el.saveInfo.textContent = err.message;
+  } finally {
+    updateSaveCard();
+  }
+}
+
+/** Descobre se há alguém logado e adapta o cabeçalho e o cartão de conta. */
+async function initAccount() {
+  try {
+    const res = await fetch('api/me', { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+    if (!res.ok) throw new Error('sem backend');
+    state.account = await res.json();
+  } catch {
+    // Sem backend PHP (ex.: servidor estático): só o gerador, sem funções de conta
+    el.promoCard.hidden = true;
+    document.querySelectorAll('[data-auth="guest"], a[href="#vantagens"]').forEach((n) => (n.hidden = true));
+    return;
+  }
+  const a = state.account;
+  if (!a.authenticated) {
+    if (a.registration === false) {
+      document.querySelectorAll('a[href="cadastrar"]').forEach((l) => (l.hidden = true));
+    }
+    return;
+  }
+  document.querySelectorAll('[data-auth="guest"]').forEach((n) => (n.hidden = true));
+  document.querySelectorAll('[data-auth="user"]').forEach((n) => (n.hidden = false));
+  if (a.isAdmin) document.querySelectorAll('[data-auth="admin"]').forEach((n) => (n.hidden = false));
+  $('#account-name').textContent = a.name;
+  $('#account-initial').textContent = (a.name || '?').trim().charAt(0).toUpperCase();
+  el.promoCard.hidden = true;
+  el.saveCard.hidden = false;
+  el.saveCard.addEventListener('submit', saveToPanel);
+  el.saveTrack.addEventListener('change', updateSaveCard);
+  updateSaveCard();
 }
 
 /* ------------------------------------------------------------------ menu mobile */
@@ -469,6 +573,7 @@ function init() {
   el.btnSvg.addEventListener('click', () => download('svg'));
 
   update();
+  initAccount();
 }
 
 init();
